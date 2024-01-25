@@ -37,11 +37,8 @@ class _HomeState extends State<Home> {
       isLoading = true;
     });
     final menuProvider = Provider.of<MenuDataProvider>(context, listen: false);
-    final orderProvider =
-        Provider.of<OrderDataProvider>(context, listen: false);
     fetchDataFromSharedPreferences();
     await menuProvider.getMenuAll();
-    await orderProvider.fetchData();
 
     setState(() {
       isLoading = false;

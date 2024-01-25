@@ -40,7 +40,7 @@ class _AddressPageState extends State<AddressPage> {
             "Atur alamat pengiriman",
             style: poppins.copyWith(
                 fontWeight: FontWeight.w500,
-                fontSize: 18), // Ganti warna teks "Lupa Password"
+                fontSize: 18), 
           ),
         ],
       ),
@@ -66,7 +66,10 @@ class _AddressPageState extends State<AddressPage> {
                     Navigator.push(
                         context,
                         PageTransition(
-                            child: const AddAddress(editMode: false),
+                            child: const AddAddress(
+                              editMode: false,
+                              isMainAddress: false,
+                            ),
                             type: PageTransitionType.fade));
                   },
                   child: Text(
@@ -102,6 +105,8 @@ class _AddressPageState extends State<AddressPage> {
   }
 
   Widget showAddressList(index, data) {
+    final addressprovider =
+        Provider.of<AddressProvider>(context, listen: false);
     String detailLokasi = data[0];
     String namaLengkap = data[1];
     String noHp = data[2];
@@ -120,6 +125,7 @@ class _AddressPageState extends State<AddressPage> {
                   tag: tag,
                   patokan: patokan,
                   editMode: true,
+                  isMainAddress: addressprovider.idx == index,
                   idx: index,
                 ),
                 type: PageTransitionType.fade));
@@ -201,7 +207,6 @@ class _AddressPageState extends State<AddressPage> {
       onSelected: (value) async {
         switch (value) {
           case 1:
-            print(addressprovider.data[idx]);
             addressprovider.setDefaultAddress(idx);
             widget.isRebuild ? Navigator.pop(context) : null;
             showSnackBar(

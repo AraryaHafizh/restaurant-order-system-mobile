@@ -2,7 +2,6 @@
 
 import 'package:capstone_restaurant/data.dart';
 import 'package:capstone_restaurant/logic/provider_handler.dart';
-import 'package:capstone_restaurant/logic/home/menu_by_cat_logic.dart';
 import 'package:capstone_restaurant/pages/home/favorite_page.dart';
 import 'package:capstone_restaurant/pages/home/popup_menu_page.dart';
 import 'package:capstone_restaurant/pages/home/search_page.dart';
@@ -90,6 +89,7 @@ class _MenubyCatState extends State<MenubyCat> {
   }
 
   Widget menubyCatPage() {
+    final menuProvider = Provider.of<MenuDataProvider>(context, listen: false);
     return SingleChildScrollView(
       child: Stack(
         children: [
@@ -104,7 +104,7 @@ class _MenubyCatState extends State<MenubyCat> {
                     fit: BoxFit.fill,
                     alignment: Alignment.topCenter)),
           ),
-          // search bar
+          // search bar ---------------
           Center(
             child: GestureDetector(
               onTap: () {
@@ -236,38 +236,19 @@ class _MenubyCatState extends State<MenubyCat> {
             ),
           ),
           Container(
-            margin: const EdgeInsets.only(top: 520),
-            child: FutureBuilder<dynamic>(
-              future: getListLen(context, selectedCategory),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return Center(
-                      child: CircularProgressIndicator(
-                    color: primary4,
-                    // value: progressController.value,
-                    strokeWidth: 6,
-                  ));
-                } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else {
-                  if (snapshot.data.isEmpty) {
-                    return noDataPopUp(
-                        context, 'Belum ada menu $selectedCategory', 100);
-                  } else {
-                    return ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: EdgeInsets.zero,
-                      itemCount: snapshot.data.length ?? 0,
-                      itemBuilder: (context, index) {
-                        return showMenuByCat(context, snapshot.data[index]);
-                      },
-                    );
-                  }
-                }
-              },
-            ),
-          )
+              margin: const EdgeInsets.only(top: 520),
+              child: ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                padding: EdgeInsets.zero,
+                // itemCount: 1,
+                itemCount:
+                    menuProvider.getMenuByCat(selectedCategory).length ?? 0,
+                itemBuilder: (context, index) {
+                  return showMenuByCat(context,
+                      menuProvider.getMenuByCat(selectedCategory)[index]);
+                },
+              ))
         ],
       ),
     );
@@ -276,10 +257,7 @@ class _MenubyCatState extends State<MenubyCat> {
 
 Widget showMenuByCat(context, data) {
   final cartHandler = Provider.of<CartHandler>(context, listen: false);
-  String title = data['name'];
-  String desc = data['description'];
-  int price = data['price'];
-  String img = data['image'];
+
   return GestureDetector(
     onTap: () {
       Navigator.push(
@@ -289,7 +267,7 @@ Widget showMenuByCat(context, data) {
                 data: data,
               ),
               type: PageTransitionType.fade));
-      debugPrint('menu $title tertekan');
+      debugPrint('menu ${data['name']} tertekan');
     },
     child: Container(
       margin: const EdgeInsets.only(bottom: 41, left: 21, right: 35),
@@ -300,7 +278,7 @@ Widget showMenuByCat(context, data) {
             height: 110,
             child: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
-                child: Image.network(img, fit: BoxFit.cover)),
+                child: Image.network(data['img'], fit: BoxFit.cover)),
           ),
           const SizedBox(width: 18),
           Expanded(
@@ -312,7 +290,7 @@ Widget showMenuByCat(context, data) {
                   SizedBox(
                     width: 135,
                     child: Text(
-                      title,
+                      data['name'],
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: poppins.copyWith(
@@ -325,14 +303,11 @@ Widget showMenuByCat(context, data) {
                       builder: (context, favProvider, child) {
                     return GestureDetector(
                       onTap: () {
-                        // setState(() {
-                        //   addToFav(data['id']);
-                        // });
-                        favProvider.addToFav(data['id']);
+                        favProvider.addToFav(data);
                       },
                       child: Image.asset(
                         'assets/images/icons/favW.png',
-                        color: favProvider.data.contains(data['id'])
+                        color: favProvider.favMenu.contains(data)
                             ? primary3
                             : bright,
                       ),
@@ -345,17 +320,16 @@ Widget showMenuByCat(context, data) {
                 height: 48,
                 width: 135,
                 child: Text(
-                  desc,
+                  data['desc'],
                   style: poppins.copyWith(fontSize: 14, color: outline),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 2,
                 ),
               ),
-              // const SizedBox(height: 7),
               Row(
                 children: [
                   Text(
-                    formatCurrency(price),
+                    data['price'],
                     style: poppins.copyWith(
                         fontWeight: FontWeight.w700,
                         fontSize: 16,
@@ -364,9 +338,8 @@ Widget showMenuByCat(context, data) {
                   const Spacer(),
                   GestureDetector(
                     onTap: () {
-                      cartHandler.addToCart(
-                           data['id'], 1, data['price']);
-                      showSnackBar(context, '$title added to cart.');
+                      cartHandler.addToCart(data['name'], 1, data['price']);
+                      showSnackBar(context, '${data['name']} added to cart.');
                     },
                     child: Container(
                       decoration: BoxDecoration(

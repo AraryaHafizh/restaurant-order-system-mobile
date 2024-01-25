@@ -1,10 +1,14 @@
+import 'package:capstone_restaurant/logic/provider_handler.dart';
 import 'package:capstone_restaurant/style.dart';
 import 'package:capstone_restaurant/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class ReceiptPage extends StatefulWidget {
-  final Map data;
-  const ReceiptPage({super.key, required this.data});
+  final List data;
+  final dynamic orderIdx;
+  final dynamic totalPrice;
+  const ReceiptPage({super.key, required this.data, this.orderIdx, this.totalPrice});
 
   @override
   State<ReceiptPage> createState() => _ReceiptPageState();
@@ -36,7 +40,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
             "History Pesanan",
             style: poppins.copyWith(
                 fontWeight: FontWeight.w500,
-                fontSize: 18), // Ganti warna teks "Lupa Password"
+                fontSize: 18),
           ),
         ],
       ),
@@ -44,6 +48,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
   }
 
   Widget showReceipt() {
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     return Column(
       children: [
         Padding(
@@ -60,7 +65,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                         fontWeight: FontWeight.w500, fontSize: 16),
                   ),
                   Text(
-                    formatDate(widget.data['createdAt']),
+                    '14 Desember 2023',
                     style: poppins.copyWith(fontSize: 14, color: outline),
                   )
                 ],
@@ -86,7 +91,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                     ],
                   ),
                   Text(
-                    'Pesanan ke-${widget.data['id']}',
+                    'Pesanan ke-${widget.orderIdx + 1}',
                     style: poppins.copyWith(fontSize: 14, color: outline),
                   )
                 ],
@@ -112,11 +117,12 @@ class _ReceiptPageState extends State<ReceiptPage> {
               children: [
                 SizedBox(
                   child: ListView.builder(
-                    itemCount: widget.data['qty'],
+                    itemCount: widget.data.length,
                     shrinkWrap: true,
                     physics: const NeverScrollableScrollPhysics(),
                     itemBuilder: (context, index) {
-                      return showMyOrder(widget.data);
+                      return showMyOrder(index, widget.data[index],
+                          orderProvider.notes[widget.orderIdx]);
                     },
                   ),
                 ),
@@ -128,11 +134,12 @@ class _ReceiptPageState extends State<ReceiptPage> {
                         Wrap(
                           runSpacing: 3,
                           children: [
-                            showPrice('Subtotal', 'Rp xxxxx'),
-                            showPrice('Ongkir', '    xxxxx'),
-                            showPrice('Biaya lain-lain', '   xxxxx'),
-                            showPrice('Voucher Promo', '   xxxxx'),
-                            showPrice('Diskon Ongkir', '   xxxxx'),
+                            showPrice('Subtotal',
+                                formatCurrency(widget.totalPrice - 14500)),
+                            showPrice('Ongkir', '12.500'),
+                            showPrice('Biaya lain-lain', '2.000'),
+                            showPrice('Voucher Promo', '0'),
+                            showPrice('Diskon Ongkir', '0'),
                           ],
                         ),
                       ],
@@ -149,34 +156,12 @@ class _ReceiptPageState extends State<ReceiptPage> {
                         Wrap(
                           runSpacing: 3,
                           children: [
-                            showPrice('Total Pembayaran', 'Rp xxxxx'),
-                            showPrice('Pembayaran via BCA', 'Rp xxxxx'),
+                            showPrice('Total Pembayaran',
+                                formatCurrency(widget.totalPrice))
                           ],
                         ),
                       ],
                     )),
-                GestureDetector(
-                  onTap: () {
-                    debugPrint('Download Bukti tertekan');
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: primary4,
-                      borderRadius: BorderRadius.circular(37),
-                    ),
-                    width: 335,
-                    height: 48,
-                    child: Center(
-                      child: Text(
-                        'Download Bukti',
-                        style: poppins.copyWith(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
-                            color: Colors.white),
-                      ),
-                    ),
-                  ),
-                ),
                 const SizedBox(height: 73)
               ],
             ),
@@ -186,7 +171,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
     );
   }
 
-  Widget showMyOrder(data) {
+  Widget showMyOrder(index, data, notes) {
     return Padding(
       padding: const EdgeInsets.only(top: 25),
       child: Column(
@@ -209,7 +194,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                       ),
                     ),
                     Text(
-                      data['price'],
+                      formatCurrency(data['price']),
                       style: poppins.copyWith(
                           fontSize: 16, fontWeight: FontWeight.w500),
                     ),
@@ -229,7 +214,7 @@ class _ReceiptPageState extends State<ReceiptPage> {
                               color: outline),
                         ),
                         TextSpan(
-                          text: 'data[8]',
+                          text: notes[index],
                           style: poppins.copyWith(color: outline),
                         ),
                       ])),

@@ -61,7 +61,6 @@ class _SearchPageState extends State<SearchPage> {
                 child: Container(
                   margin: const EdgeInsets.only(left: 25),
                   padding: const EdgeInsets.symmetric(horizontal: 10),
-                  // width: 311,
                   decoration: BoxDecoration(
                     color: primary2,
                     borderRadius: BorderRadius.circular(32),
@@ -202,70 +201,55 @@ class _SearchPageState extends State<SearchPage> {
 
   Widget section2() {
     final menuProvider = Provider.of<MenuDataProvider>(context, listen: false);
+    List result = menuProvider.searchFood(foodSearchController.text);
     return Expanded(
-        child: FutureBuilder<dynamic>(
-      future: menuProvider.getMenuByName(foodSearchController.text),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(
-              child: CircularProgressIndicator(
-            color: primary4,
-            strokeWidth: 6,
-          ));
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          return Container(
-            margin: const EdgeInsets.only(top: 27),
-            child: ListView.builder(
-              shrinkWrap: true,
-              padding: EdgeInsets.zero,
-              itemCount: 1,
-              itemBuilder: (context, index) {
-                if (snapshot.data == null || snapshot.data.isEmpty) {
-                  return Column(
+      child: Container(
+        margin: const EdgeInsets.only(top: 27),
+        child: ListView.builder(
+          shrinkWrap: true,
+          padding: EdgeInsets.zero,
+          itemCount: result.length,
+          itemBuilder: (context, index) {
+            if (result.isEmpty) {
+              return Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                      Image.asset(
+                        'assets/images/home/homePage/kosong.png',
+                        width: 110,
+                      ),
+                      const SizedBox(width: 10),
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Image.asset(
-                            'assets/images/home/homePage/kosong.png',
-                            width: 110,
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Waah, menu gak ketemu',
-                                  style: poppins.copyWith(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500)),
-                              const SizedBox(height: 5),
-                              Text(
-                                'Sepertinya menu yang kamu\ncari gak ada, coba cari yang\nlain yuk!',
-                                style: poppins,
-                              )
-                            ],
-                          ),
+                          Text('Waah, menu gak ketemu',
+                              style: poppins.copyWith(
+                                  fontSize: 16, fontWeight: FontWeight.w500)),
+                          const SizedBox(height: 5),
+                          Text(
+                            'Sepertinya menu yang kamu\ncari gak ada, coba cari yang\nlain yuk!',
+                            style: poppins,
+                          )
                         ],
                       ),
-                      const SizedBox(height: 30),
-                      SizedBox(
-                          width: MediaQuery.of(context).size.width - 60,
-                          child: const Divider())
                     ],
-                  );
-                } else {
-                  // Jika tidak kosong, return widget yang menampilkan hasil pencarian
-                  return showMenuByCat(context, snapshot.data);
-                }
-              },
-            ),
-          );
-        }
-      },
-    ));
+                  ),
+                  const SizedBox(height: 30),
+                  SizedBox(
+                      width: MediaQuery.of(context).size.width - 60,
+                      child: const Divider())
+                ],
+              );
+            } else {
+              return showMenuByCat(context, result[index]);
+            }
+          },
+        ),
+      ),
+    );
   }
 
   Widget showFilterPage() {

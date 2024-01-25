@@ -6,7 +6,7 @@ import 'package:capstone_restaurant/pages/profile/faq_page.dart';
 import 'package:capstone_restaurant/pages/profile/my_account_page.dart';
 import 'package:capstone_restaurant/pages/profile/address_page.dart';
 
-List<String> localUserData = [];
+List localUserData = [];
 List searchHistory = [];
 
 List catData = [
@@ -41,12 +41,6 @@ List accMenu = [
     'assets/images/icons/accPage/password.png',
     const ChangePassword()
   ],
-  // [
-  //   'Metode Pembayaran',
-  //   'Tambahkan metode pembayaran',
-  //   'assets/images/icons/accPage/pembayaran.png',
-  //   const PaymentMethod()
-  // ],
   [
     'Lokasi',
     'Atur alamat pengiriman',
@@ -81,24 +75,6 @@ List accExtraMenu = [
     const FAQPage()
   ],
 ];
-
-// ----------------------------
-
-// List paymentEWallet = [
-//   ['assets/images/icons/payment/gopay.png', 'Gopay'],
-//   ['assets/images/icons/payment/dana.png', 'Dana'],
-//   ['assets/images/icons/payment/ovo.png', 'OVO'],
-//   ['assets/images/icons/payment/shopeepay.png', 'Shopee Pay'],
-// ];
-
-// List paymentBank = [
-//   ['assets/images/icons/payment/bca.png', 'BCA'],
-//   ['assets/images/icons/payment/permata.png', 'Permata Bank'],
-//   ['assets/images/icons/payment/bri.png', 'BRI'],
-//   ['assets/images/icons/payment/mandiri.png', 'Bank Mandiri'],
-//   ['assets/images/icons/payment/cimb.png', 'CIMB Niaga'],
-//   ['assets/images/icons/payment/btn.png', 'Bank BTN'],
-// ];
 
 // ----------------------------
 
@@ -152,18 +128,6 @@ List orderStatusEvents = [
     'assets/images/order/statusLogo6.png'
   ],
 ];
-
-// List orderHistory = [
-//   'assets/images/home/orderPage/history/historyMenu.png',
-//   'Oglio Olio, Nasi Karsjakndaks',
-//   'Rp 24.000',
-//   '12 Oktober 2023',
-//   '30 Min',
-//   '2 item | 4 km',
-//   'My Home',
-//   '052223',
-//   'sausnya tambah bangg'
-// ];
 
 // ----------------------------
 
@@ -246,72 +210,3 @@ Map<String, dynamic> faqData = {
   },
 };
 
-// -------------------------------
-// rachel
-class DataMenu {
-  List recMenu = [
-    {
-      'image': 'assets/images/tuna.png',
-      'title': 'Tuna With Lemon',
-      'price': 'Rp 15.000',
-      'dec': 'Tuna bumbu kuning dengan perasan lemon yang segar',
-    },
-    {
-      'image': 'assets/images/sushi.png',
-      'title': 'Sushi Ikan Lele',
-      'price': 'Rp 15.000',
-      'dec': 'Sushi Ikan Lele',
-    },
-    {
-      'image': 'assets/images/pasta.png',
-      'title': 'Pasta Ayam',
-      'price': 'Rp 10.000',
-      'dec': 'Pasta Ayam',
-    },
-    {
-      'image': 'assets/images/kopi.png',
-      'title': 'Kopi Hitam',
-      'price': 'Rp 5.000',
-      'dec': 'Kopi Hitam',
-    },
-    {
-      'image': 'assets/images/pie.png',
-      'title': 'Pie Coklat',
-      'price': 'Rp 10.000',
-      'dec': 'Pie Coklat',
-    },
-    {
-      'image': 'assets/images/sandwich.png',
-      'title': 'Sandwich',
-      'price': 'Rp 10.000',
-      'dec': 'Sandwich',
-    },
-  ];
-
-  List terlaris = [
-    {
-      'image': 'assets/images/napolifussili.png',
-      'title': 'Napolitana',
-      'price': 'Rp 15.000',
-      'dec': 'Fussili yang lezat dengan bumbu napoli yang segar',
-    },
-    {
-      'image': 'assets/images/miegoreng.png',
-      'title': 'Mie Goreng',
-      'price': 'Rp 15.000',
-      'dec': 'Mie goreng dengan seafood yang segar pas buat kamu',
-    },
-    {
-      'image': 'assets/images/sushi.png',
-      'title': 'Sushi Ikan Lele',
-      'price': 'Rp 15.000',
-      'dec': 'Sushi Ikan Lele',
-    },
-    {
-      'image': 'assets/images/pasta.png',
-      'title': 'Pasta Ayam',
-      'price': 'Rp 10.000',
-      'dec': 'Pasta Ayam',
-    }
-  ];
-}

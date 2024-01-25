@@ -40,7 +40,7 @@ class _FavoriteMenuState extends State<FavoriteMenu> {
             "Menu Favorit",
             style: poppins.copyWith(
                 fontWeight: FontWeight.w500,
-                fontSize: 18), // Ganti warna teks "Lupa Password"
+                fontSize: 18), 
           ),
         ],
       ),
@@ -50,16 +50,15 @@ class _FavoriteMenuState extends State<FavoriteMenu> {
   Widget favoritePage() {
     return Consumer<FavoritesMenuProvider>(
         builder: (context, favProvider, child) {
-      if (favProvider.data.isNotEmpty) {
+      if (favProvider.favMenu.isNotEmpty) {
         return Column(
           children: [
             Expanded(
               child: ListView.builder(
                 padding: EdgeInsets.zero,
-                itemCount: favProvider.data.length,
+                itemCount: favProvider.favMenu.length,
                 itemBuilder: ((BuildContext context, index) {
-                  // return Text('aaaa');
-                  return favMenuMaker(context, favProvider.data[index]);
+                  return favMenuMaker(context, favProvider.favMenu[index]);
                 }),
               ),
             ),

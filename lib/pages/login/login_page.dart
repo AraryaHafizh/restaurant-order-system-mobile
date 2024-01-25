@@ -188,6 +188,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget userInput(controller) {
     return TextField(
+      onTap: () {
+        setState(() {
+          emailInput.text = 'user@gmail.com';
+        });
+      },
       focusNode: emailFocusNode,
       onEditingComplete: () {
         FocusScope.of(context).requestFocus(passwordFocusNode);
@@ -201,6 +206,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Widget userPasswordInput(controller) {
     return TextFormField(
+      onTap: () {
+        setState(() {
+          passwordInput.text = 'User1234';
+        });
+      },
       focusNode: passwordFocusNode,
       textInputAction: TextInputAction.send,
       onFieldSubmitted: (value) {

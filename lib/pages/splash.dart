@@ -1,13 +1,12 @@
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:capstone_restaurant/data.dart';
-import 'package:capstone_restaurant/logic/provider_handler.dart';
 import 'package:capstone_restaurant/pages/home/home.dart';
 import 'package:capstone_restaurant/pages/login/onboarding_page.dart';
 import 'package:capstone_restaurant/widgets.dart';
 import 'package:page_transition/page_transition.dart';
 import 'package:capstone_restaurant/style.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Splash extends StatefulWidget {
   // final bool isLogin;
@@ -26,13 +25,13 @@ class _SplashState extends State<Splash> {
   }
 
   Future<void> fetchDataAndMenu() async {
-    final userProvider = Provider.of<UserDataProvider>(context, listen: false);
+    final prefs = await SharedPreferences.getInstance();
+    bool loginStatus = await prefs.getBool('isLogin') ?? false;
     await fetchDataFromSharedPreferences();
-    bool result = await userProvider.checkStatus();
     setState(() {
-      isLogin = result;
+      isLogin = loginStatus;
     });
-    print(result);
+    print(loginStatus);
     print(localUserData);
   }
 
@@ -46,7 +45,6 @@ class _SplashState extends State<Splash> {
       splashIconSize: double.infinity,
       backgroundColor: primary3,
       nextScreen: isLogin ? const Home(setIdx: 0) : const OnboardingPage(),
-      // nextScreen: const Home(setIdx: 0),
       pageTransitionType: PageTransitionType.fade,
       splashTransition: SplashTransition.fadeTransition,
       duration: 2000,

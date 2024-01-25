@@ -1,7 +1,10 @@
+import 'package:capstone_restaurant/logic/provider_handler.dart';
+import 'package:capstone_restaurant/pages/home/home.dart';
 import 'package:capstone_restaurant/pages/order/order_status.dart';
 import 'package:capstone_restaurant/style.dart';
 import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:provider/provider.dart';
 
 class ConfirmationPage extends StatefulWidget {
   const ConfirmationPage({super.key});
@@ -32,7 +35,6 @@ class _ConfirmationPageState extends State<ConfirmationPage>
       backgroundColor: tertiary2,
       appBar: showAppBar(),
       body: confirmPage(),
-      // body: isLoading ? confirmPage() : confirmPage2(),
     );
   }
 
@@ -52,9 +54,7 @@ class _ConfirmationPageState extends State<ConfirmationPage>
           const SizedBox(width: 8),
           Text(
             "Konfirmasi",
-            style: poppins.copyWith(
-                fontWeight: FontWeight.w500,
-                fontSize: 18), // Ganti warna teks "Lupa Password"
+            style: poppins.copyWith(fontWeight: FontWeight.w500, fontSize: 18),
           ),
         ],
       ),
@@ -82,7 +82,7 @@ class _ConfirmationPageState extends State<ConfirmationPage>
               child: Column(
                 children: [
                   Image.asset('assets/images/login/handle.png'),
-                  const Spacer(),
+                  const SizedBox(height: 50),
                   Text(
                     'Sebentar ya, pesanan mu masih\ndalam konfirmasi',
                     textAlign: TextAlign.center,
@@ -90,12 +90,12 @@ class _ConfirmationPageState extends State<ConfirmationPage>
                         fontSize: 18, fontWeight: FontWeight.w500),
                   ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 38, bottom: 57),
+                    padding: const EdgeInsets.only(top: 50, bottom: 50),
                     child: Align(
                       alignment: Alignment.topCenter,
                       child: SizedBox(
-                        width: 144,
-                        height: 144,
+                        width: 100,
+                        height: 100,
                         child: CircularProgressIndicator(
                           color: primary4,
                           strokeWidth: 12,
@@ -121,7 +121,7 @@ class _ConfirmationPageState extends State<ConfirmationPage>
               child: Column(
                 children: [
                   Image.asset('assets/images/login/handle.png'),
-                  const Spacer(),
+                  const SizedBox(height: 50),
                   Text(
                     'Pesananmu sudah di \nkonfirmasi yeay!\nYuk, lihat status pesananmu',
                     textAlign: TextAlign.center,
@@ -133,12 +133,19 @@ class _ConfirmationPageState extends State<ConfirmationPage>
                     padding: const EdgeInsets.only(bottom: 57),
                     child: GestureDetector(
                       onTap: () {
-                        Navigator.push(
+                        final cartHandler =
+                            Provider.of<CartHandler>(context, listen: false);
+
+                        Navigator.pushAndRemoveUntil(
                             context,
                             PageTransition(
-                                child: const OrderStatus(dataFromAPI: false,),
-                                type: PageTransitionType.fade));
-                        debugPrint('Lihat Status Pesanan ');
+                                child: const Home(setIdx: 1),
+                                //  OrderStatus(
+                                //   clearCart: true,
+                                // ),
+                                type: PageTransitionType.fade),
+                            (route) => false);
+                        cartHandler.clearCart();
                       },
                       child: Container(
                         decoration: BoxDecoration(
@@ -167,69 +174,6 @@ class _ConfirmationPageState extends State<ConfirmationPage>
       ],
     );
   }
-
-  // Widget confirmPage2() {
-  //   return Column(
-  //     children: [
-  //       Image.asset(
-  //         'assets/images/order/confirm2.png',
-  //         // fit: BoxFit.fill,
-  //       ),
-  //       Expanded(
-  //         child: Container(
-  //           padding: const EdgeInsets.only(top: 9),
-  //           width: MediaQuery.of(context).size.width,
-  //           decoration: const BoxDecoration(
-  //               color: Colors.white,
-  //               borderRadius: BorderRadius.vertical(top: Radius.circular(56))),
-  //           child: Column(
-  //             children: [
-  //               Image.asset('assets/images/login/handle.png'),
-  //               const SizedBox(height: 60),
-  //               Text(
-  //                 'Pesananmu sudah di \nkonfirmasi yeay!\nYuk, lihat status pesananmu',
-  //                 textAlign: TextAlign.center,
-  //                 style: poppins.copyWith(
-  //                     fontSize: 18, fontWeight: FontWeight.w500),
-  //               ),
-  //               const Spacer(),
-  //               Padding(
-  //                 padding: const EdgeInsets.only(bottom: 57),
-  //                 child: GestureDetector(
-  //                   onTap: () {
-  //                     Navigator.push(
-  //                         context,
-  //                         PageTransition(
-  //                             child: const OrderStatus(),
-  //                             type: PageTransitionType.fade));
-  //                     debugPrint('Lihat Status Pesanan ');
-  //                   },
-  //                   child: Container(
-  //                     decoration: BoxDecoration(
-  //                       color: primary4,
-  //                       borderRadius: BorderRadius.circular(37),
-  //                     ),
-  //                     width: 335,
-  //                     height: 48,
-  //                     child: Center(
-  //                       child: Text(
-  //                         'Lihat Status Pesanan',
-  //                         style: poppins.copyWith(
-  //                             fontWeight: FontWeight.w700,
-  //                             fontSize: 16,
-  //                             color: Colors.white),
-  //                       ),
-  //                     ),
-  //                   ),
-  //                 ),
-  //               ),
-  //             ],
-  //           ),
-  //         ),
-  //       )
-  //     ],
-  //   );
-  // }
 
   Future addCancelreason(context) {
     return showModalBottomSheet(
@@ -270,7 +214,6 @@ class _ConfirmationPageState extends State<ConfirmationPage>
                       child: TextField(
                         controller: cancelReason,
                         decoration: userInputNote.copyWith(
-                          // prefixIcon: Icon(Icons.edit, color: Colors.black45),
                           hintText: 'Salah pilih menu',
                           hintStyle: poppins.copyWith(color: Colors.black45),
                         ),

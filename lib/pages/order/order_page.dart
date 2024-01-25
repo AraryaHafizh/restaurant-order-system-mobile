@@ -1,4 +1,5 @@
 import 'package:capstone_restaurant/logic/provider_handler.dart';
+import 'package:capstone_restaurant/pages/order/history_order_page.dart';
 import 'package:capstone_restaurant/pages/order/ongoing_order_page.dart';
 import 'package:capstone_restaurant/style.dart';
 import 'package:capstone_restaurant/widgets.dart';
@@ -18,14 +19,6 @@ class _OrderPageState extends State<OrderPage> {
   bool isRiwayatSelected = false;
   bool isDibatalkanSelected = false;
 
-  // @override
-  // void initState() {
-  //   super.initState();
-  //   final orderProvider =
-  //       Provider.of<OrderDataProvider>(context, listen: false);
-  //   orderProvider.fetchData();
-  // }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -43,7 +36,7 @@ class _OrderPageState extends State<OrderPage> {
             "Pesanan",
             style: poppins.copyWith(
                 fontWeight: FontWeight.w500,
-                fontSize: 18), // Ganti warna teks "Lupa Password"
+                fontSize: 18),
           ),
         ],
       ),
@@ -66,9 +59,6 @@ class _OrderPageState extends State<OrderPage> {
             Tab(
               text: 'Riwayat',
             ),
-            // Tab(
-            //   text: 'Dibatalkan',
-            // ),
           ]),
     );
   }
@@ -82,8 +72,7 @@ class _OrderPageState extends State<OrderPage> {
           body: Padding(
             padding: const EdgeInsets.only(top: 24),
             child: TabBarView(children: [
-              Consumer<OrderDataProvider>(
-                  builder: (context, orderProvider, child) {
+              Consumer<OrderProvider>(builder: (context, orderProvider, child) {
                 if (orderProvider.ongoing.isNotEmpty) {
                   return SizedBox(
                       child: ListView.builder(
@@ -91,7 +80,10 @@ class _OrderPageState extends State<OrderPage> {
                     itemCount: orderProvider.ongoing.length,
                     itemBuilder: ((BuildContext context, index) {
                       return ongoingOrder(
-                          context, orderProvider.ongoing[index]);
+                        context,
+                        index,
+                        orderProvider.ongoing[index],
+                      );
                     }),
                   ));
                 } else {
@@ -99,16 +91,18 @@ class _OrderPageState extends State<OrderPage> {
                       MediaQuery.of(context).size.height);
                 }
               }),
-              Consumer<OrderDataProvider>(
-                  builder: (context, orderProvider, child) {
+              Consumer<OrderProvider>(builder: (context, orderProvider, child) {
                 if (orderProvider.history.isNotEmpty) {
                   return SizedBox(
                       child: ListView.builder(
                     padding: EdgeInsets.zero,
                     itemCount: orderProvider.history.length,
                     itemBuilder: ((BuildContext context, index) {
-                      return Text(orderProvider.history[index].toString());
-                      // return historyOrder(context, orderProvider.history[index]);
+                      return historyOrder(
+                        context,
+                        index,
+                        orderProvider.history[index],
+                      );
                     }),
                   ));
                 } else {
@@ -116,15 +110,6 @@ class _OrderPageState extends State<OrderPage> {
                       MediaQuery.of(context).size.height);
                 }
               }),
-
-              // SizedBox(
-              //     child: ListView.builder(
-              //   padding: EdgeInsets.zero,
-              //   itemCount: orderProvider.cancel.length,
-              //   itemBuilder: ((BuildContext context, index) {
-              //     return cancelOrder(context, orderProvider.cancel[index]);
-              //   }),
-              // )),
             ]),
           ),
         ));

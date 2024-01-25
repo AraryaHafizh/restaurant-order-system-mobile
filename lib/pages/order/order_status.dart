@@ -1,4 +1,3 @@
-import 'package:capstone_restaurant/data.dart';
 import 'package:capstone_restaurant/logic/provider_handler.dart';
 import 'package:capstone_restaurant/pages/help/help_page.dart';
 import 'package:capstone_restaurant/pages/home/home.dart';
@@ -10,10 +9,17 @@ import 'package:capstone_restaurant/style.dart';
 import 'package:flutter/material.dart';
 
 class OrderStatus extends StatefulWidget {
-  final bool dataFromAPI;
-  final dynamic data;
+  final bool clearCart;
+  final dynamic orderData;
+  final dynamic totalPrice;
+  final dynamic orderIdx;
 
-  const OrderStatus({super.key, required this.dataFromAPI, this.data});
+  const OrderStatus(
+      {super.key,
+      required this.clearCart,
+      this.orderData,
+      this.totalPrice,
+      this.orderIdx});
 
   @override
   State<OrderStatus> createState() => _OrderStatusState();
@@ -25,7 +31,7 @@ class _OrderStatusState extends State<OrderStatus> {
     super.initState();
     orderStatusDemo();
   }
-  
+
   Future<void> orderStatusDemo() async {
     final orderStatusDemoProvider =
         Provider.of<OrderStatusDemoProvider>(context, listen: false);
@@ -52,7 +58,7 @@ class _OrderStatusState extends State<OrderStatus> {
         children: [
           GestureDetector(
             onTap: () {
-              widget.dataFromAPI ? null : cartProvider.clearCart();
+              widget.clearCart ? cartProvider.clearCart() : null;
               Navigator.pushAndRemoveUntil(
                   context,
                   MaterialPageRoute(
@@ -66,7 +72,7 @@ class _OrderStatusState extends State<OrderStatus> {
             "Status Pesanan Saya",
             style: poppins.copyWith(
                 fontWeight: FontWeight.w500,
-                fontSize: 18), // Ganti warna teks "Lupa Password"
+                fontSize: 18), 
           ),
         ],
       ),
@@ -136,9 +142,164 @@ class _OrderStatusState extends State<OrderStatus> {
   }
 
   Widget section2() {
+    final cartProvider = Provider.of<CartHandler>(context, listen: false);
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     return SizedBox(
-      child: showOrderList(),
-    );
+        child: DraggableScrollableSheet(
+      minChildSize: 0.1,
+      maxChildSize: 0.9,
+      initialChildSize: 0.1,
+      builder: (BuildContext context, ScrollController scrollController) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 8,
+                spreadRadius: 1,
+                offset: Offset(0, -5),
+              )
+            ],
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(56),
+            ),
+          ),
+          child: Stack(children: [
+            widget.clearCart
+                ? Container(
+                    margin: const EdgeInsets.only(top: 145),
+                    height: MediaQuery.of(context).size.height,
+                    width: MediaQuery.of(context).size.width,
+                    child: SingleChildScrollView(
+                        controller: scrollController,
+                        child: Column(
+                          children: [
+                            ListView.builder(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              itemCount: cartProvider.cart.length,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemBuilder: ((BuildContext context, index) {
+                                return listOrderMaker(
+                                  index,
+                                  cartProvider.cart[index],
+                                  widget.clearCart,
+                                );
+                              }),
+                            ),
+                            calculatePrice(
+                                'Subtotal', formatCurrency(cartProvider.price)),
+                            calculatePrice('Ongkir', '12.500'),
+                            calculatePrice('Biaya lain-lain', '2.000'),
+                            calculatePrice('Voucher Promo', '0'),
+                            calculatePrice('Diskon Ongkir', '0'),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Divider(),
+                            ),
+                            calculatePrice('Total Pembayaran',
+                                formatCurrency(cartProvider.price + 14500)),
+                            const SizedBox(height: 25),
+                            finishButton(context, widget.orderIdx, false),
+                            const SizedBox(height: 25),
+                          ],
+                        )))
+                : Container(
+                    margin: const EdgeInsets.only(top: 145),
+                    height: MediaQuery.of(context).size.height,
+                    width: MediaQuery.of(context).size.width,
+                    child: SingleChildScrollView(
+                        controller: scrollController,
+                        child: Column(
+                          children: [
+                            ListView.builder(
+                              padding: EdgeInsets.zero,
+                              shrinkWrap: true,
+                              itemCount: widget.orderData.length,
+                              physics: const NeverScrollableScrollPhysics(),
+                              itemBuilder: ((BuildContext context, index) {
+                                return listOrderMaker(index,
+                                    widget.orderData[index], widget.clearCart,
+                                    notes:
+                                        orderProvider.notes[widget.orderIdx]);
+                              }),
+                            ),
+                            calculatePrice('Subtotal',
+                                formatCurrency(widget.totalPrice - 14500)),
+                            calculatePrice('Ongkir', '12.500'),
+                            calculatePrice('Biaya lain-lain', '2.000'),
+                            calculatePrice('Voucher Promo', '0'),
+                            calculatePrice('Diskon Ongkir', '0'),
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 20),
+                              child: Divider(),
+                            ),
+                            calculatePrice('Total Pembayaran',
+                                formatCurrency(widget.totalPrice)),
+                            const SizedBox(height: 25),
+                            finishButton(context, widget.orderIdx, true),
+                            const SizedBox(height: 25),
+                          ],
+                        ))),
+            Container(
+              width: MediaQuery.of(context).size.width,
+              padding: const EdgeInsets.only(left: 29, right: 30),
+              child: SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 11),
+                      child: Align(
+                          alignment: Alignment.center,
+                          child: Image.asset('assets/images/login/handle.png')),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 21),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Daftar Pesanan',
+                            style: poppins.copyWith(
+                                fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                  context,
+                                  PageTransition(
+                                      child: const HelpPage(route: false),
+                                      type: PageTransitionType.fade));
+                            },
+                            child: CircleAvatar(
+                              backgroundColor: primary4,
+                              child: Image.asset(
+                                'assets/images/icons/pesanan.png',
+                                width: 18,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 28),
+                    Text(
+                      'Pesanan mu',
+                      style: poppins.copyWith(
+                          fontSize: 15, fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ]),
+        );
+      },
+    ));
   }
 
   // ----------------------------------------------------------------
@@ -207,317 +368,68 @@ class _OrderStatusState extends State<OrderStatus> {
 
   // ----------------------------------------------------------------
 
-  Widget showOrderList() {
-    return DraggableScrollableSheet(
-      minChildSize: 0.1,
-      maxChildSize: 0.9,
-      initialChildSize: 0.1,
-      builder: (BuildContext context, ScrollController scrollController) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 8,
-                spreadRadius: 1,
-                offset: Offset(0, -5),
-              )
-            ],
-            borderRadius: BorderRadius.vertical(
-              top: Radius.circular(56),
-            ),
-          ),
-          child: Stack(children: [
-            widget.dataFromAPI
-                ? Container(
-                    margin: const EdgeInsets.only(top: 165),
-                    height: MediaQuery.of(context).size.height,
-                    width: MediaQuery.of(context).size.width,
-                    child: SingleChildScrollView(
-                        controller: scrollController,
-                        child: Column(
-                          children: [
-                            ListView.builder(
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              itemCount: widget.data['order_items'].length,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemBuilder: ((BuildContext context, index) {
-                                return listOrderMaker(
-                                    widget.data['order_items'][index]);
-                              }),
-                            ),
-                            calculatePrice('Subtotal',
-                                formatCurrency(widget.data['totalPrice'])),
-                            calculatePrice('Ongkir', '0'),
-                            calculatePrice('Biaya lain-lain', '0'),
-                            calculatePrice('Voucher Promo', '0'),
-                            calculatePrice('Diskon Ongkir', '0'),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 20),
-                              child: Divider(),
-                            ),
-                            calculatePrice('Total Pembayaran',
-                                formatCurrency(widget.data['totalPrice'])),
-                            const SizedBox(height: 22),
-                          ],
-                        )))
-                : Consumer<CartHandler>(builder: (context, cartHandler, child) {
-                    return Container(
-                        margin: const EdgeInsets.only(top: 165),
-                        height: MediaQuery.of(context).size.height,
-                        width: MediaQuery.of(context).size.width,
-                        child: SingleChildScrollView(
-                            controller: scrollController,
-                            child: Column(
-                              children: [
-                                ListView.builder(
-                                  padding: EdgeInsets.zero,
-                                  shrinkWrap: true,
-                                  itemCount: cartHandler.cart.length,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  itemBuilder: ((BuildContext context, index) {
-                                    return listOrderMakerCart(
-                                        cartHandler.cart[index]);
-                                  }),
-                                ),
-                                calculatePrice('Subtotal',
-                                    cartHandler.getFormattedPrice()),
-                                calculatePrice('Ongkir', '0'),
-                                calculatePrice('Biaya lain-lain', '0'),
-                                calculatePrice('Voucher Promo', '0'),
-                                calculatePrice('Diskon Ongkir', '0'),
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 20),
-                                  child: Divider(),
-                                ),
-                                calculatePrice('Total Pembayaran',
-                                    cartHandler.getFormattedPrice()),
-                                const SizedBox(height: 22),
-                              ],
-                            )));
-                  }),
-            Container(
-              width: MediaQuery.of(context).size.width,
-              padding: const EdgeInsets.only(left: 29, right: 30),
-              child: SingleChildScrollView(
-                controller: scrollController,
+  Widget listOrderMaker(index, data, clearCart, {notes}) {
+    final cartProvider = Provider.of<CartHandler>(context, listen: false);
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 29, right: 30),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    '${data['name']}  x${data['quantity']}',
+                    style: poppins.copyWith(
+                        fontWeight: FontWeight.w400, fontSize: 16),
+                  ),
+                  const Spacer(),
+                  Text(
+                    formatCurrency(data['originalPrice']),
+                    style: poppins.copyWith(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        color: primary4),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              SizedBox(
+                width: 217,
+                height: 45,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.only(top: 11),
-                      child: Align(
-                          alignment: Alignment.center,
-                          child: Image.asset('assets/images/login/handle.png')),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 21),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Daftar Pesanan',
-                            style: poppins.copyWith(
-                                fontSize: 16, fontWeight: FontWeight.w500),
-                          ),
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  PageTransition(
-                                      child: const HelpPage(route: false),
-                                      type: PageTransitionType.fade));
-                            },
-                            child: CircleAvatar(
-                              backgroundColor: primary4,
-                              child: Image.asset(
-                                'assets/images/icons/pesanan.png',
-                                width: 18,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 48),
-                    Text(
-                      'Pesanan mu',
-                      style: poppins.copyWith(
-                          fontSize: 15, fontWeight: FontWeight.w500),
-                    ),
+                    RichText(
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          children: <TextSpan>[
+                            TextSpan(
+                                text: 'Catatan: ',
+                                style: poppins.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    color: outline)),
+                            TextSpan(
+                                text: clearCart
+                                    ? cartProvider.notes[index]
+                                    : notes[index],
+                                style: poppins.copyWith(color: outline)),
+                          ],
+                        ))
                   ],
                 ),
               ),
-            ),
-          ]),
-        );
-      },
+            ],
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.only(left: 13, right: 13, bottom: 16),
+          child: Divider(),
+        )
+      ],
     );
-  }
-
-  Widget listOrderMaker(data) {
-    final menuProvider = Provider.of<MenuDataProvider>(context, listen: false);
-    return FutureBuilder(
-        future: menuProvider.getMenuById(data['menuId']),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            // print('waiting');
-            return Center(
-                child: CircularProgressIndicator(
-              color: primary4,
-              strokeWidth: 6,
-            ));
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
-            Map foodData = snapshot.data!;
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 29, right: 30),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            '${foodData['name']}  x${data['quantity']}',
-                            style: poppins.copyWith(
-                                fontWeight: FontWeight.w400, fontSize: 16),
-                          ),
-                          const Spacer(),
-                          Text(
-                            formatCurrency(foodData['price']),
-                            style: poppins.copyWith(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16,
-                                color: primary4),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      SizedBox(
-                        width: 217,
-                        height: 45,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            RichText(
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                text: TextSpan(
-                                  children: <TextSpan>[
-                                    TextSpan(
-                                        text: 'Catatan: ',
-                                        style: poppins.copyWith(
-                                            fontWeight: FontWeight.w500,
-                                            color: outline)),
-                                    TextSpan(
-                                        text: '',
-                                        style:
-                                            poppins.copyWith(color: outline)),
-                                  ],
-                                ))
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.only(left: 13, right: 13, bottom: 16),
-                  child: Divider(),
-                )
-              ],
-            );
-          }
-        });
-  }
-
-  Widget listOrderMakerCart(data) {
-    final menuProvider = Provider.of<MenuDataProvider>(context, listen: false);
-    return
-        // Text(data['menu_id'].toString());
-        FutureBuilder(
-            future: menuProvider.getMenuById(data['menu_id']),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                // print('waiting');
-                return Center(
-                    child: CircularProgressIndicator(
-                  color: primary4,
-                  strokeWidth: 6,
-                ));
-              } else if (snapshot.hasError) {
-                return Text('Error: ${snapshot.error}');
-              } else {
-                Map foodData = snapshot.data!;
-                return
-                    // Text(foodData.toString());
-                    Column(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 29, right: 30),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                '${foodData['name']}  x${data['quantity']}',
-                                style: poppins.copyWith(
-                                    fontWeight: FontWeight.w400, fontSize: 16),
-                              ),
-                              const Spacer(),
-                              Text(
-                                formatCurrency(foodData['price']),
-                                style: poppins.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 16,
-                                    color: primary4),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 6),
-                          SizedBox(
-                            width: 217,
-                            height: 45,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                RichText(
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    text: TextSpan(
-                                      children: <TextSpan>[
-                                        TextSpan(
-                                            text: 'Catatan: ',
-                                            style: poppins.copyWith(
-                                                fontWeight: FontWeight.w500,
-                                                color: outline)),
-                                        TextSpan(
-                                            text: '',
-                                            style: poppins.copyWith(
-                                                color: outline)),
-                                      ],
-                                    ))
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.only(left: 13, right: 13, bottom: 16),
-                      child: Divider(),
-                    )
-                  ],
-                );
-              }
-            });
   }
 
   Widget calculatePrice(title, String price) {
@@ -544,4 +456,41 @@ class _OrderStatusState extends State<OrderStatus> {
       ),
     );
   }
+}
+
+Widget finishButton(context, index, isActive) {
+  final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+  return Consumer<OrderStatusDemoProvider>(
+      builder: (context, orderStatusDemoProvider, child) {
+    return GestureDetector(
+      onTap: () {
+        if (isActive && orderStatusDemoProvider.status) {
+          orderProvider.orderFinished(index);
+          Navigator.pop(context);
+        } else {
+          debugPrint('not allowed');
+        }
+      },
+      child: Container(
+        width: MediaQuery.of(context).size.width - 70,
+        height: 50,
+        decoration: BoxDecoration(
+          color: orderStatusDemoProvider.status && isActive ? primary4 : bright,
+          borderRadius: BorderRadius.circular(37),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 30),
+          child: Center(
+            child: Text(
+              'Finish Order',
+              style: poppins.copyWith(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 15,
+                  color: Colors.white),
+            ),
+          ),
+        ),
+      ),
+    );
+  });
 }

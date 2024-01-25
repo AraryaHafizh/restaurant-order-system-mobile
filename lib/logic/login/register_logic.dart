@@ -7,7 +7,6 @@ passwordCheck(context, username, email, password1, passowrd2) {
   bool isSame = password1 == passowrd2;
   if (isSame) {
     registerMe(context, username, email, password1);
-    debugPrint('continue');
   } else {
     summonDialog(context,
         customTitle: 'Password tidak sama',

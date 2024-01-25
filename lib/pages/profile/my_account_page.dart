@@ -58,7 +58,7 @@ class _AccPageState extends State<AccPage> {
             "Profil Saya",
             style: poppins.copyWith(
                 fontWeight: FontWeight.w500,
-                fontSize: 18), // Ganti warna teks "Lupa Password"
+                fontSize: 18),
           ),
         ],
       ),
@@ -97,16 +97,16 @@ class _AccPageState extends State<AccPage> {
             padding: const EdgeInsets.only(left: 25, right: 40),
             child: Column(
               children: [
-                fieldMaker(context, 'Nama*', localUserData[0], nama,
+                fieldMaker(context, 'Nama', localUserData[0], nama,
                     focusNode: namaFocusNode,
                     textInputAction: TextInputAction.next,
                     prefilled: localUserData[0]),
-                fieldMaker(context, 'Email*', localUserData[1], email,
+                fieldMaker(context, 'Email', localUserData[1], email,
                     active: false),
-                fieldMaker(context, 'Nomor Hp*', '+62666666666', noHP,
+                fieldMaker(context, 'Nomor Hp', localUserData[2], noHP,
                     focusNode: noHPFocusNode,
                     textInputAction: TextInputAction.next),
-                fieldMaker(context, 'Tanggal lahir*', 'day/month/year', dob,
+                fieldMaker(context, 'Tanggal lahir', localUserData[3], dob,
                     focusNode: dobFocusNode,
                     textInputAction: TextInputAction.go)
               ],

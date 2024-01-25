@@ -1,7 +1,4 @@
-import 'dart:math';
-
 import 'package:capstone_restaurant/logic/provider_handler.dart';
-import 'package:capstone_restaurant/logic/home/menu_by_cat_logic.dart';
 import 'package:capstone_restaurant/style.dart';
 import 'package:capstone_restaurant/widgets.dart';
 import 'package:flutter/material.dart';
@@ -16,23 +13,6 @@ class PopUpMenuDetail extends StatefulWidget {
 }
 
 class _PopUpMenuDetailState extends State<PopUpMenuDetail> {
-  String category = '';
-
-  @override
-  void initState() {
-    super.initState();
-    loadCat(context, widget.data['name']);
-  }
-
-  Future<void> loadCat(context, name) async {
-    await getCategory(context, name).then((value) {
-      setState(() {
-        category = value;
-      });
-    });
-    // print(category);
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -62,11 +42,11 @@ class _PopUpMenuDetailState extends State<PopUpMenuDetail> {
               builder: (context, favProvider, child) {
             return GestureDetector(
               onTap: () {
-                favProvider.addToFav(widget.data['id']);
+                favProvider.addToFav(widget.data);
               },
               child: Image.asset(
                 'assets/images/icons/favW.png',
-                color: favProvider.data.contains(widget.data['id'])
+                color: favProvider.favMenu.contains(widget.data)
                     ? primary3
                     : Colors.white,
               ),
@@ -79,14 +59,7 @@ class _PopUpMenuDetailState extends State<PopUpMenuDetail> {
 
   Widget menubyCatPage() {
     final cartHandler = Provider.of<CartHandler>(context, listen: false);
-    String title = widget.data['name'];
-    String desc = widget.data['description'];
-    int price = widget.data['price'];
-    String img = widget.data['image'];
-    int randomAvgRating = Random().nextInt(5) + 1;
-    int averageRating = randomAvgRating;
-    int randomRating = Random().nextInt(100) + 1;
-    String totalRating = randomRating.toString();
+    var data = widget.data;
     return SingleChildScrollView(
       child: Column(
         children: [
@@ -94,7 +67,7 @@ class _PopUpMenuDetailState extends State<PopUpMenuDetail> {
             width: MediaQuery.of(context).size.width,
             decoration: BoxDecoration(
                 image: DecorationImage(
-              image: NetworkImage(img),
+              image: NetworkImage(data['img']),
               alignment: Alignment.topCenter,
               fit: BoxFit.contain,
             )),
@@ -116,12 +89,11 @@ class _PopUpMenuDetailState extends State<PopUpMenuDetail> {
                           padding: const EdgeInsets.only(
                               left: 17, right: 17, top: 18),
                           child: Column(
-                            // crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  title,
+                                  data['name'],
                                   style: poppins.copyWith(
                                       fontWeight: FontWeight.w600,
                                       fontSize: 20),
@@ -139,7 +111,7 @@ class _PopUpMenuDetailState extends State<PopUpMenuDetail> {
                                           index < 4
                                               ? 'assets/images/icons/star.png'
                                               : 'assets/images/icons/star.png',
-                                          color: index < averageRating
+                                          color: index < data['rating'].floor()
                                               ? tertiary3
                                               : outline,
                                           width: 12,
@@ -149,14 +121,14 @@ class _PopUpMenuDetailState extends State<PopUpMenuDetail> {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '${averageRating.toString()}.0',
+                                    data['rating'].toString(),
                                     style: poppins.copyWith(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 13),
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '($totalRating Reviews)',
+                                    '(${data['reviews'].toString()} Reviews)',
                                     style: poppins.copyWith(
                                         color: outline, fontSize: 12),
                                   )
@@ -166,7 +138,7 @@ class _PopUpMenuDetailState extends State<PopUpMenuDetail> {
                               Row(
                                 children: [
                                   Text(
-                                    '• $category',
+                                    '• ${data['category']}',
                                     style: poppins.copyWith(
                                         color: outline, fontSize: 10),
                                   ),
@@ -185,7 +157,7 @@ class _PopUpMenuDetailState extends State<PopUpMenuDetail> {
                                   ),
                                   const Spacer(),
                                   Text(
-                                    formatCurrency(price),
+                                    data['price'],
                                     style: poppins.copyWith(
                                         fontWeight: FontWeight.w700,
                                         color: primary4,
@@ -208,48 +180,22 @@ class _PopUpMenuDetailState extends State<PopUpMenuDetail> {
                                     ),
                                     const SizedBox(height: 10),
                                     Text(
-                                      desc,
+                                      data['desc'],
                                       style: poppins.copyWith(
                                           fontWeight: FontWeight.w400,
                                           fontSize: 16),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    const Divider(),
-                                    const SizedBox(height: 20),
-                                    Text(
-                                      'Rating & Review',
-                                      style: poppins.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 20),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      desc,
-                                      style: poppins.copyWith(
-                                          fontWeight: FontWeight.w400,
-                                          fontSize: 16),
-                                    ),
-                                    const SizedBox(height: 10),
+                                    ),                                    
                                   ],
                                 ),
                               ),
-                              const Divider(),
-                              const SizedBox(height: 20),
-                              // Column(
-                              //   crossAxisAlignment: CrossAxisAlignment.start,
-                              //   children: [
-
-                              //   ],
-                              // ),
-                              const SizedBox(height: 20),
                               Padding(
-                                padding: const EdgeInsets.only(bottom: 50),
+                                padding: const EdgeInsets.only(top:40, bottom: 50),
                                 child: GestureDetector(
                                   onTap: () {
-                                    cartHandler.addToCart(widget.data['id'], 1,
-                                        widget.data['price']);
-                                    showSnackBar(
-                                        context, '$title added to cart.');
+                                    cartHandler.addToCart(
+                                        data['name'], 1, data['price']);
+                                    showSnackBar(context,
+                                        '${data['name']} added to cart.');
                                   },
                                   child: Container(
                                     decoration: BoxDecoration(

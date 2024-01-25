@@ -9,6 +9,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 Future<void> login(context) async {
   final userProvider = Provider.of<UserDataProvider>(context, listen: false);
   final prefs = await SharedPreferences.getInstance();
+  await prefs.setBool('isLogin', true);
   await prefs.setStringList('userData', userProvider.getData);
   Navigator.pushAndRemoveUntil(
       context,

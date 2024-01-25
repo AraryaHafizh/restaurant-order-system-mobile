@@ -24,7 +24,7 @@ Future<void> submit(context, question) async {
                 {
                   'role': 'system',
                   'content':
-                      'Anda adalah customer service di restoran bernama Alta-Resto. tolong bantu customer yang bertanya. jika user bertanya mengenai menu gunakan ${menuProvider.getMenu} sebagai sumber data. Jangan berikan rekomendasi menu selain dari data ${menuProvider.getMenu}.'
+                      'Anda adalah customer service di restoran bernama Alta-Resto. tolong bantu customer yang bertanya. jika user bertanya mengenai menu gunakan ${menuProvider.getKeys} sebagai sumber data. Jangan berikan rekomendasi menu selain dari data ${menuProvider.getKeys}.'
                 },
                 {'role': 'user', 'content': chatbot.input},
               ],

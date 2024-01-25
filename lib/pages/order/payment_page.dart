@@ -188,16 +188,6 @@ class _PaymentPageState extends State<PaymentPage> {
             width: MediaQuery.of(context).size.width,
             decoration: BoxDecoration(color: moreBright),
           ),
-          // Padding(
-          //   padding: const EdgeInsets.only(left: 20),
-          //   child: Align(
-          //     alignment: Alignment.centerLeft,
-          //     child: Image.asset(
-          //       defaultPaymentMethod[0],
-          //       width: 83,
-          //     ),
-          //   ),
-          // ),
           GestureDetector(
             onTap: () {
               confirmDialog(context);

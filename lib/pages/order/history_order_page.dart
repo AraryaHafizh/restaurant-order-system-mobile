@@ -1,3 +1,4 @@
+import 'package:capstone_restaurant/logic/provider_handler.dart';
 import 'package:capstone_restaurant/pages/order/input_rating_page.dart';
 import 'package:capstone_restaurant/pages/order/order_page.dart';
 import 'package:capstone_restaurant/pages/order/receipt_page.dart';
@@ -5,28 +6,26 @@ import 'package:capstone_restaurant/style.dart';
 import 'package:capstone_restaurant/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:provider/provider.dart';
 
-Widget historyOrder(context, data) {
+Widget historyOrder(context, index, items) {
+  final menuProvider = Provider.of<MenuDataProvider>(context, listen: false);
+  final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+  var price = orderProvider.price[index];
+  var qty = orderProvider.quantity[index];
+  Map foodData = menuProvider.getMenuDetails(items[0]['name']);
+  // return Text(foodData.toString());
   return Column(
     children: [
-      Padding(
-        padding: const EdgeInsets.only(bottom: 8, left: 16),
-        child: Align(
-          alignment: AlignmentDirectional.centerStart,
-          child: Text(
-            formatDate(data['createdAt']),
-            style: poppins.copyWith(fontSize: 15, color: outline),
-          ),
-        ),
-      ),
-      const SizedBox(height: 8),
       GestureDetector(
         onTap: () {
           Navigator.push(
               context,
               PageTransition(
                   child: ReceiptPage(
-                    data: data,
+                    data: items,
+                    orderIdx: index,
+                    totalPrice: price,
                   ),
                   type: PageTransitionType.fade));
         },
@@ -49,7 +48,7 @@ Widget historyOrder(context, data) {
                         child: ClipRRect(
                             borderRadius: const BorderRadius.vertical(
                                 top: Radius.circular(22)),
-                            child: Image.network(data['image'],
+                            child: Image.network(foodData['img'],
                                 fit: BoxFit.cover))),
                     Positioned(
                         left: 15,
@@ -59,20 +58,6 @@ Widget historyOrder(context, data) {
                           style:
                               poppins.copyWith(fontSize: 16, color: primary2),
                         )),
-                    Positioned(
-                      right: 25,
-                      bottom: 13,
-                      child: GestureDetector(
-                        onTap: () {
-                          debugPrint('menu fav pressed');
-                        },
-                        child: Image.asset(
-                          'assets/images/icons/fav.png',
-                          width: 20,
-                          color: bright,
-                        ),
-                      ),
-                    )
                   ],
                 ),
                 Padding(
@@ -87,7 +72,7 @@ Widget historyOrder(context, data) {
                             children: [
                               SizedBox(
                                 width: 165,
-                                child: Text(data['name'],
+                                child: Text(foodData['name'],
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 1,
                                     style: poppins.copyWith(
@@ -97,7 +82,7 @@ Widget historyOrder(context, data) {
                               const SizedBox(width: 10),
                             ],
                           ),
-                          Text('Rp ${data['price']}',
+                          Text(formatCurrency(price),
                               style: poppins.copyWith(
                                   fontWeight: FontWeight.w500, fontSize: 16))
                         ],
@@ -107,8 +92,7 @@ Widget historyOrder(context, data) {
                         children: [
                           Row(
                             children: [
-                              Text(
-                                  '${data['qty']} item | ${data['distance']} km',
+                              Text('$qty item | 4 km',
                                   style: poppins.copyWith(
                                       fontWeight: FontWeight.w400,
                                       fontSize: 15,
@@ -125,11 +109,15 @@ Widget historyOrder(context, data) {
                       ),
                       const SizedBox(height: 20),
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           orderButtonMaker(context, 'kasih Rating', primary2,
-                              color: primary4, route: InputRating(data: data)),
-                          orderButtonMaker(context, 'Pesan Lagi', primary4)
+                              color: primary4,
+                              route: InputRating(
+                                data: items,
+                                qty: qty,
+                                img: foodData['img'],
+                              )),
                         ],
                       ),
                     ],

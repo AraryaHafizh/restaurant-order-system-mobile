@@ -1,7 +1,6 @@
 import 'package:capstone_restaurant/style.dart';
+import 'package:capstone_restaurant/widgets.dart';
 import 'package:flutter/material.dart';
-
-int totalOrder = 3;
 
 class ReviewItem {
   int userRating = 0;
@@ -10,8 +9,11 @@ class ReviewItem {
 }
 
 class InputRating extends StatefulWidget {
-  final Map data;
-  const InputRating({super.key, required this.data});
+  final List data;
+  final int qty;
+  final String img;
+  const InputRating(
+      {super.key, required this.data, required this.qty, required this.img});
 
   @override
   State<InputRating> createState() => _InputRatingState();
@@ -19,8 +21,15 @@ class InputRating extends StatefulWidget {
 
 class _InputRatingState extends State<InputRating> {
   bool isAnonim = false;
-  List<ReviewItem> reviewItems =
-      List.generate(totalOrder, (index) => ReviewItem());
+  int itemLen = 0;
+  late List<ReviewItem> reviewItems;
+
+  @override
+  void initState() {
+    super.initState();
+    itemLen = widget.data.length;
+    reviewItems = List.generate(itemLen, (index) => ReviewItem());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,13 +66,13 @@ class _InputRatingState extends State<InputRating> {
 
   Widget inputRatingPage() {
     return SingleChildScrollView(
-        child: Stack(
+            child: Stack(
       children: [
         Container(
           height: 350,
           decoration: BoxDecoration(
             image: DecorationImage(
-                image: NetworkImage(widget.data['image']),
+                image: NetworkImage(widget.img),
                 fit: BoxFit.fill,
                 alignment: Alignment.topCenter),
           ),
@@ -106,11 +115,10 @@ class _InputRatingState extends State<InputRating> {
               child: ListView.builder(
                 shrinkWrap: true,
                 padding: EdgeInsets.zero,
-                itemCount: totalOrder,
+                itemCount: itemLen,
                 physics: const NeverScrollableScrollPhysics(),
                 itemBuilder: ((BuildContext context, index) {
-                  return reviewBoxMaker(reviewItems[index], widget.data);
-                  // return reviewBoxMaker(widget.data);
+                  return reviewBoxMaker(reviewItems[index], widget.data[index]);
                 }),
               ),
             ),
@@ -146,7 +154,8 @@ class _InputRatingState extends State<InputRating> {
                   GestureDetector(
                     onTap: () {
                       printUserReviews();
-                      // debugPrint('Kirim tertekan');
+                      Navigator.pop(context);
+                      showSnackBar(context, 'Terima kasih atas reviewnya!');
                     },
                     child: Container(
                       decoration: BoxDecoration(
@@ -211,20 +220,6 @@ class _InputRatingState extends State<InputRating> {
                         color: reviewItem.ratings[index] ? tertiary3 : surface,
                         width: 30,
                       ),
-                      // onTap: () {
-                      //   setState(() {
-                      //     for (int i = 0; i < ratings.length; i++) {
-                      //       ratings[i] = i <= index;
-                      //     }
-                      //     userRating = index + 1;
-                      //     print('rating dari user: $userRating');
-                      //   });
-                      // },
-                      // child: Image.asset(
-                      //   'assets/images/icons/star.png',
-                      //   color: ratings[index] ? tertiary3 : surface,
-                      //   width: 30,
-                      // ),
                     ));
               }),
             ),

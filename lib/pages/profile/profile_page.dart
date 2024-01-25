@@ -28,13 +28,6 @@ class _ProfilePageState extends State<ProfilePage> {
       scrolledUnderElevation: 0,
       title: Row(
         children: [
-          // GestureDetector(
-          //   onTap: () {
-          //     Navigator.pop(context);
-          //   },
-          //   child: Image.asset('assets/images/icons/backButton.png'),
-          // ),
-          // const SizedBox(width: 8),
           Text(
             "Profil Saya",
             style: poppins.copyWith(fontWeight: FontWeight.w500, fontSize: 18),
@@ -91,7 +84,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           Text(localUserData[1],
                               style: poppins.copyWith(
                                   color: outline, fontSize: 14)),
-                          Text('+62666666666',
+                          Text(localUserData[2],
                               style: poppins.copyWith(
                                   color: outline, fontSize: 14)),
                         ],
@@ -196,7 +189,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                 )
-                // const SizedBox(height: 24),
               ],
             ),
           ),

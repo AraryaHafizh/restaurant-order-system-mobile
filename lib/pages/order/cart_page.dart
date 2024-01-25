@@ -9,11 +9,6 @@ import 'package:provider/provider.dart';
 
 import '../../logic/provider_handler.dart';
 
-// class DetailOrder {
-//   List notes = List.filled(userCart.length, '');
-//   List items = List.filled(userCart.length, 1);
-// }
-
 class CartPage extends StatefulWidget {
   const CartPage({super.key});
 
@@ -51,7 +46,7 @@ class _CartPageState extends State<CartPage> {
             "Konfirmasi Pesanan",
             style: poppins.copyWith(
                 fontWeight: FontWeight.w500,
-                fontSize: 18), // Ganti warna teks "Lupa Password"
+                fontSize: 18),
           ),
         ],
       ),
@@ -59,6 +54,8 @@ class _CartPageState extends State<CartPage> {
   }
 
   Widget confirmOrderPage() {
+    final cartHandler = Provider.of<CartHandler>(context, listen: false);
+    final orderProvider = Provider.of<OrderProvider>(context, listen: false);
     return SingleChildScrollView(
       child: SizedBox(
         width: MediaQuery.of(context).size.width,
@@ -86,7 +83,7 @@ class _CartPageState extends State<CartPage> {
                     width: MediaQuery.of(context).size.width,
                     child: addressprovider.data.isEmpty
                         ? SizedBox(
-                            height: 140,
+                            height: 120,
                             child: Center(
                               child: Text(
                                 'Belum ada alamat tersimpan.',
@@ -95,9 +92,10 @@ class _CartPageState extends State<CartPage> {
                             ),
                           )
                         : SizedBox(
-                            height: 140,
+                            height: 120,
                             child: Padding(
-                                padding: const EdgeInsets.all(16),
+                                padding: const EdgeInsets.only(
+                                    top: 25, left: 15, right: 15, bottom: 20),
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -225,7 +223,7 @@ class _CartPageState extends State<CartPage> {
                                         fontSize: 16),
                                   ),
                                   Text(
-                                    cartHandler.getFormattedPrice(),
+                                    formatCurrency(cartHandler.totalPrice),
                                     style: poppins.copyWith(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 16),
@@ -243,7 +241,7 @@ class _CartPageState extends State<CartPage> {
                                         fontSize: 16),
                                   ),
                                   Text(
-                                    '   0',
+                                    '12.500',
                                     style: poppins.copyWith(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 16),
@@ -261,7 +259,7 @@ class _CartPageState extends State<CartPage> {
                                         fontSize: 16),
                                   ),
                                   Text(
-                                    '   0',
+                                    '2.000',
                                     style: poppins.copyWith(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 16),
@@ -286,7 +284,7 @@ class _CartPageState extends State<CartPage> {
                                   fontWeight: FontWeight.w500, fontSize: 16),
                             ),
                             Text(
-                              cartHandler.getFormattedPrice(),
+                              formatCurrency(cartHandler.totalPrice + 14500),
                               style: poppins.copyWith(
                                   fontWeight: FontWeight.w500,
                                   fontSize: 16,
@@ -320,8 +318,7 @@ class _CartPageState extends State<CartPage> {
                 children: [
                   Checkbox(
                     value: checkBoxVal,
-                    checkColor:
-                        primary2, // warna tanda centang saat checkbox aktif
+                    checkColor: primary2,
                     fillColor: MaterialStateProperty.resolveWith<Color>(
                       (Set<MaterialState> states) {
                         if (states.contains(MaterialState.selected)) {
@@ -351,35 +348,19 @@ class _CartPageState extends State<CartPage> {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 31, horizontal: 31),
-              child: GestureDetector(
-                onTap: () async {
-                  final cartProvider =
-                      Provider.of<CartHandler>(context, listen: false);
-                  final orderProvider =
-                      Provider.of<OrderDataProvider>(context, listen: false);
-                  final paymentProvider =
-                      Provider.of<PaymentDataProvider>(context, listen: false);
-                  final List data =
-                      await orderProvider.placeOrder(cartProvider.cart);
-                  bool success = data[0];
-                  int id = data[1];
-                  if (success) {
-                    String paymentURL =
-                        await paymentProvider.openPaymentPage(id);
-                    await urlLauncher(paymentURL);
-                    await Future.delayed(const Duration(seconds: 1));
-                    toNextPage();
-                  } else {
-                    print('noooooo');
-                  }
-
-                  debugPrint('Pesan Sekarang tertekan');
-                  print(cartProvider.cart);
-                },
-                child: Container(
+              child: GestureDetector(onTap: () {
+                if (cartHandler.cart.isNotEmpty) {
+                  // print(cartHandler.cart);
+                  orderProvider.placeOrder(cartHandler.cart, cartHandler.notes,
+                      cartHandler.price + 14500, cartHandler.quantity);
+                  toNextPage();
+                  print(cartHandler.notes);
+                }
+              }, child:
+                  Consumer<CartHandler>(builder: (context, cartHandler, child) {
+                return Container(
                   decoration: BoxDecoration(
-                    // color: paymentData.isEmpty ? surface : primary4,
-                    color: primary4,
+                    color: cartHandler.cart.isEmpty ? bright : primary4,
                     borderRadius: BorderRadius.circular(37),
                   ),
                   width: 335,
@@ -390,12 +371,11 @@ class _CartPageState extends State<CartPage> {
                       style: poppins.copyWith(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
-                          // color: paymentData.isEmpty ? outline : Colors.white),
                           color: Colors.white),
                     ),
                   ),
-                ),
-              ),
+                );
+              })),
             )
           ],
         ),
@@ -414,154 +394,133 @@ class _CartPageState extends State<CartPage> {
   }
 
   Widget listOrderMaker(data, index) {
-    final menuProvider = Provider.of<MenuDataProvider>(context, listen: false);
     final cartProvider = Provider.of<CartHandler>(context, listen: false);
-    return FutureBuilder(
-        future: menuProvider.getMenuById(data['menu_id']),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            print('waiting');
-            return Center(
-                child: CircularProgressIndicator(
-              color: primary4,
-              strokeWidth: 6,
-            ));
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
-            Map foodData = snapshot.data!;
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                      left: 20, right: 20, top: 20, bottom: 18),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 160),
-                            child: Text(
-                              foodData['name'],
-                              style: poppins.copyWith(
-                                  fontWeight: FontWeight.w400, fontSize: 16),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          GestureDetector(
-                            onTap: () {
-                              addNote(context, index);
-                            },
-                            child: Row(
-                              children: [
-                                Image.asset(
-                                  'assets/images/icons/edit.png',
-                                  width: 8,
-                                  color: primary1,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'Catatan',
-                                  style: poppins.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 11,
-                                      color: primary1),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          Text(
-                            formatCurrency(foodData['price']),
-                            style: poppins.copyWith(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 16,
-                                color: primary4),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          SizedBox(
-                            width: 217,
-                            height: 45,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                RichText(
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    text: TextSpan(
-                                      children: <TextSpan>[
-                                        TextSpan(
-                                            text: 'Catatan: ',
-                                            style: poppins.copyWith(
-                                                fontWeight: FontWeight.w500,
-                                                color: outline)),
-                                        TextSpan(
-                                            text: cartProvider.notes[index],
-                                            style: poppins.copyWith(
-                                                color: outline)),
-                                      ],
-                                    ))
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          SizedBox(
-                            width: 80,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    cartProvider.decrementItem(foodData['id'],
-                                        index, foodData['price']);
-                                    debugPrint('decrement tertekan');
-                                  },
-                                  child: Image.asset(
-                                    'assets/images/icons/decrement.png',
-                                    width: 24,
-                                  ),
-                                ),
-                                // const SizedBox(width: 16),
-                                Text(
-                                  data['quantity'].toString(),
-                                  style: poppins.copyWith(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 16),
-                                ),
-                                // const SizedBox(width: 16),
-                                GestureDetector(
-                                  onTap: () {
-                                    cartProvider.incrementItem(foodData['id'],
-                                        index, foodData['price']);
-                                    debugPrint('increment tertekan');
-                                  },
-                                  child: Image.asset(
-                                    'assets/images/icons/increment.png',
-                                    width: 24,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                    ],
+    return Column(
+      children: [
+        Padding(
+          padding:
+              const EdgeInsets.only(left: 20, right: 20, top: 20, bottom: 18),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 160),
+                    child: Text(
+                      data['name'],
+                      style: poppins.copyWith(
+                          fontWeight: FontWeight.w400, fontSize: 16),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 13),
-                  child: Divider(),
-                )
-              ],
-            );
-          }
-        });
+                  const SizedBox(width: 12),
+                  GestureDetector(
+                    onTap: () {
+                      addNote(context, index);
+                    },
+                    child: Row(
+                      children: [
+                        Image.asset(
+                          'assets/images/icons/edit.png',
+                          width: 8,
+                          color: primary1,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Catatan',
+                          style: poppins.copyWith(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 11,
+                              color: primary1),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    formatCurrency(data['originalPrice']),
+                    style: poppins.copyWith(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 16,
+                        color: primary4),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  SizedBox(
+                    width: 217,
+                    height: 45,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        RichText(
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            text: TextSpan(
+                              children: <TextSpan>[
+                                TextSpan(
+                                    text: 'Catatan: ',
+                                    style: poppins.copyWith(
+                                        fontWeight: FontWeight.w500,
+                                        color: outline)),
+                                TextSpan(
+                                    text: cartProvider.notes[index],
+                                    style: poppins.copyWith(color: outline)),
+                              ],
+                            ))
+                      ],
+                    ),
+                  ),
+                  const Spacer(),
+                  SizedBox(
+                    width: 80,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            cartProvider.decrementItem(
+                                index, data['name'], data['originalPrice']);
+                            debugPrint('decrement tertekan');
+                          },
+                          child: Image.asset(
+                            'assets/images/icons/decrement.png',
+                            width: 24,
+                          ),
+                        ),
+                        Text(
+                          data['quantity'].toString(),
+                          style: poppins.copyWith(
+                              fontWeight: FontWeight.w500, fontSize: 16),
+                        ),
+                        GestureDetector(
+                          onTap: () {
+                            cartProvider.incrementItem(
+                                data['name'], data['originalPrice']);
+                            debugPrint('increment tertekan');
+                          },
+                          child: Image.asset(
+                            'assets/images/icons/increment.png',
+                            width: 24,
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ],
+          ),
+        ),
+        const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 13),
+          child: Divider(),
+        )
+      ],
+    );
   }
 
   Future addNote(context, index) {

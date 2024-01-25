@@ -250,7 +250,7 @@ Widget showRecommendation(context) {
         ),
       ),
       const SizedBox(height: 24),
-      menuProvider.getMenu.isEmpty
+      menuProvider.getKeys.isEmpty
           ? noDataPopUp(context, 'Belum ada menu', 380)
           : SizedBox(
               width: MediaQuery.of(context).size.width - 21,
@@ -259,10 +259,10 @@ Widget showRecommendation(context) {
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.only(bottom: 25),
                   shrinkWrap: true,
-                  itemCount: menuProvider.getMenu.length,
+                  itemCount: 4,
                   itemBuilder: (BuildContext context, index) {
                     return recommendationMenuMaker(
-                        context, menuProvider.getMenu[index]);
+                        context, menuProvider.getVal[index]);
                   }),
             ),
     ],
@@ -284,17 +284,16 @@ Widget showFavMenu(context, setState) {
       ),
       Consumer<FavoritesMenuProvider>(
         builder: (context, favProvider, child) {
-          return favProvider.data.isEmpty
+          return favProvider.favMenu.isEmpty
               ? noDataPopUp(context, 'Belum ada menu favorit', 270)
               : SizedBox(
                   height: 270,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     padding: EdgeInsets.zero,
-                    itemCount: favProvider.data.length,
+                    itemCount: favProvider.favMenu.length,
                     itemBuilder: ((BuildContext context, index) {
-                      // return Text('aaaa');
-                      return favMenuMaker(context, favProvider.data[index]);
+                      return favMenuMaker(context, favProvider.favMenu[index]);
                     }),
                   ),
                 );
@@ -369,7 +368,7 @@ Widget showBestSeller(context) {
               )),
         ),
         const SizedBox(height: 16),
-        menuProvider.getMenu.isEmpty
+        menuProvider.getKeys.isEmpty
             ? noDataPopUp(context, 'Belum ada menu terlaris', 281)
             : SizedBox(
                 width: MediaQuery.of(context).size.width - 21,
@@ -378,10 +377,10 @@ Widget showBestSeller(context) {
                     scrollDirection: Axis.horizontal,
                     padding: const EdgeInsets.only(bottom: 12),
                     shrinkWrap: true,
-                    itemCount: menuProvider.getMenu.length,
+                    itemCount: 5,
                     itemBuilder: (BuildContext context, index) {
                       return bestSellerMenuMaker(
-                          context, menuProvider.getMenu[index]);
+                          context, menuProvider.getVal[index + 2]);
                     }),
               ),
       ],
@@ -390,7 +389,6 @@ Widget showBestSeller(context) {
 }
 
 // ------------ Widget Builder ---------------------------
-
 Widget recommendationMenuMaker(context, data) {
   return GestureDetector(
     onTap: () {
@@ -418,7 +416,7 @@ Widget recommendationMenuMaker(context, data) {
                   child: ClipRRect(
                       borderRadius: BorderRadius.circular(15),
                       child: Image.network(
-                        data['image'],
+                        data['img'],
                         fit: BoxFit.cover,
                       ))),
               const SizedBox(height: 10),
@@ -429,11 +427,11 @@ Widget recommendationMenuMaker(context, data) {
                       builder: (context, favProvider, child) {
                     return GestureDetector(
                       onTap: () {
-                        favProvider.addToFav(data['id']);
+                        favProvider.addToFav(data);
                       },
                       child: Image.asset(
                         'assets/images/icons/favW.png',
-                        color: favProvider.data.contains(data['id'])
+                        color: favProvider.favMenu.contains(data)
                             ? primary3
                             : bright,
                       ),
@@ -450,12 +448,12 @@ Widget recommendationMenuMaker(context, data) {
                     Text(data['name'],
                         style: poppins.copyWith(
                             fontWeight: FontWeight.w500, fontSize: 16)),
-                    Text(formatCurrency(data['price']),
+                    Text(data['price'],
                         style: poppins.copyWith(
                             fontWeight: FontWeight.w600,
                             fontSize: 16,
                             color: secondary3)),
-                    Text(data['description'],
+                    Text(data['category'],
                         style: poppins.copyWith(
                             fontWeight: FontWeight.w400,
                             fontSize: 10,
@@ -486,7 +484,7 @@ Widget recommendationMenuMaker(context, data) {
                               width: 9,
                               color: Colors.white,
                             ),
-                            Text('4.5',
+                            Text(data['rating'].toString(),
                                 style: poppins.copyWith(
                                     fontWeight: FontWeight.w400,
                                     fontSize: 10,
@@ -536,7 +534,7 @@ Widget bestSellerMenuMaker(context, data) {
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
             child: Image.network(
-              data['image'],
+              data['img'],
               width: 175,
               height: 162,
               fit: BoxFit.cover,
@@ -575,7 +573,7 @@ Widget bestSellerMenuMaker(context, data) {
                             width: 9,
                             color: Colors.white,
                           ),
-                          Text('4.8',
+                          Text(data['rating'].toString(),
                               style: poppins.copyWith(
                                   fontWeight: FontWeight.w400,
                                   fontSize: 10,
@@ -587,8 +585,10 @@ Widget bestSellerMenuMaker(context, data) {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  data['description'],
+                  data['desc'],
                   style: poppins.copyWith(fontSize: 10, color: outline),
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
                 )
               ],
             ),

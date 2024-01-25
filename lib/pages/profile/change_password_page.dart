@@ -29,6 +29,7 @@ class _ChangePasswordState extends State<ChangePassword> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: showAppBar(),
       body: changePasswordPage(),
     );
@@ -51,7 +52,7 @@ class _ChangePasswordState extends State<ChangePassword> {
             "Ubah Password",
             style: poppins.copyWith(
                 fontWeight: FontWeight.w500,
-                fontSize: 18), // Ganti warna teks "Lupa Password"
+                fontSize: 18), 
           ),
         ],
       ),
@@ -89,8 +90,12 @@ class _ChangePasswordState extends State<ChangePassword> {
                     newPassword.text.isNotEmpty) {
                   applyNewPassword();
                 } else {
-                  confirmDialog('Oops, gagal mengubah password',
-                      'Silahkan coba lagi.', false);
+                  List data = [localUserData, currentPassword.text];
+                  print(data[0][2]);
+                  confirmDialog(
+                    'Oops, gagal mengubah password',
+                    false,
+                  );
                 }
               },
               child: Container(
@@ -118,21 +123,28 @@ class _ChangePasswordState extends State<ChangePassword> {
   }
 
   Future<void> applyNewPassword() async {
-    List data = [localUserData[1], currentPassword.text];
+    List dataNewPassword = [localUserData, newPassword.text];
+    List dataAuth = [localUserData[1], currentPassword.text];
     final userProvider = Provider.of<UserDataProvider>(context, listen: false);
-    bool accepted = await userProvider.userLogin(data);
+    bool accepted = await userProvider.userLogin(dataAuth);
     if (accepted) {
-      bool changeSuccess = await userProvider.updatePassword(newPassword.text);
+      bool changeSuccess = await userProvider.updatePassword(dataNewPassword);
       if (changeSuccess) {
-        confirmDialog('Yeay, password berhasil diubah',
-            'Kata sandi kamu telah diperbaharui.', changeSuccess);
+        confirmDialog(
+          'Yeay, password berhasil diubah.',
+          changeSuccess,
+        );
       } else {
-        confirmDialog('Oops, gagal mengubah password', 'Silahkan coba lagi.',
-            changeSuccess);
+        confirmDialog(
+          'Oops, gagal mengubah password',
+          changeSuccess,
+        );
       }
     } else {
       confirmDialog(
-          'Oops, gagal mengubah password', 'Silahkan coba lagi.', false);
+        'Oops, gagal mengubah password.',
+        false,
+      );
     }
   }
 
@@ -173,11 +185,12 @@ class _ChangePasswordState extends State<ChangePassword> {
           if (newPassword.text.isNotEmpty && regex.hasMatch(newPassword.text)) {
             applyNewPassword();
           } else {
-            confirmDialog('Oops, gagal mengubah password',
-                'Pastikan password baru sesuai kriteria.', false);
+            confirmDialog(
+              'Oops, gagal mengubah password',
+              false,
+            );
           }
         } else {
-          // Handle case when currentPassword is empty
           print('currentPassword is empty');
         }
       },
@@ -199,7 +212,7 @@ class _ChangePasswordState extends State<ChangePassword> {
     );
   }
 
-  void confirmDialog(title, subtitle, success) {
+  void confirmDialog(title, success) {
     showDialog(
         barrierDismissible: true,
         context: context,
@@ -214,13 +227,9 @@ class _ChangePasswordState extends State<ChangePassword> {
                     title,
                     style: poppins.copyWith(
                         fontWeight: FontWeight.w500, fontSize: 16),
+                    textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    subtitle,
-                    style: poppins.copyWith(color: outline, fontSize: 12),
-                  ),
-                  const Spacer(),
+                  const SizedBox(height: 25),
                   GestureDetector(
                     onTap: () {
                       if (success) {

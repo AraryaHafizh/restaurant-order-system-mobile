@@ -1,7 +1,6 @@
 import 'package:capstone_restaurant/data.dart';
 import 'package:capstone_restaurant/logic/help/help_logic.dart';
 import 'package:capstone_restaurant/logic/url_collection.dart';
-import 'package:capstone_restaurant/widgets.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 
@@ -12,20 +11,24 @@ class UserDataProvider with ChangeNotifier {
   List<String> get getData => userData;
 
   Future<bool> userLogin(data) async {
+    bool result = false;
     try {
-      final response = await dio
-          .post(userLoginURL, data: {"email": data[0], "password": data[1]});
+      final response = await dio.get(userDataURL);
       if (response.statusCode == 200) {
-        // result = response.data;
-        userData.addAll([
-          response.data['results']['username'],
-          response.data['results']['email'],
-          response.data['results']['access_token'],
-          response.data['results']['id'].toString()
-        ]);
+        response.data.forEach((key, val) {
+          if (val['email'] == data[0] && val['password'] == data[1]) {
+            userData.addAll([
+              val['username'],
+              val['email'],
+              val['phoneNumber'],
+              val['dob'],
+            ]);
+            result = true;
+          }
+        });
         localUserData = userData;
         notifyListeners();
-        return response.data['response']['success'];
+        return result;
       } else {
         throw Exception('Failed to load data from API');
       }
@@ -36,28 +39,14 @@ class UserDataProvider with ChangeNotifier {
   }
 
   Future<bool> userRegister(data) async {
-    dynamic result;
     try {
-      final response = await dio.post(userRegisterURL,
-          data: {"username": data[0], "email": data[1], "password": data[2]});
-      if (response.statusCode == 201) {
-        result = response.data;
-        notifyListeners();
-        return result['response']['success'];
-      } else {
-        throw Exception('Failed to load data from API');
-      }
-    } catch (error) {
-      return false;
-      // throw Exception('Failed to load data from API: $error');
-    }
-  }
-
-  Future<bool> checkStatus() async {
-    try {
-      final response = await dio.get(userGetDataURL,
-          options: Options(
-              headers: {'Authorization': 'Bearer ${localUserData[2]}'}));
+      final response = await dio.patch(userDataURL, data: {
+        data[0]: {
+          "username": data[0],
+          "email": data[1],
+          "password": data[2],
+        }
+      });
       if (response.statusCode == 200) {
         notifyListeners();
         return true;
@@ -66,100 +55,88 @@ class UserDataProvider with ChangeNotifier {
       }
     } catch (error) {
       return false;
-      // throw Exception('Failed to load data from API: $error');
     }
   }
 
-  Future<bool> updatePassword(newPass) async {
+  Future<bool> updatePassword(data) async {
     try {
-      final response = await dio.put(
-          '$userUpdatePasswordURL/${int.tryParse(localUserData[3])}',
-          data: {"password": newPass},
-          options: Options(
-              headers: {'Authorization': 'Bearer ${localUserData[2]}'}));
+      final response = await dio.patch(userDataURL, data: {
+        data[0][0]: {
+          "username": data[0][0],
+          "email": data[0][1],
+          "password": data[1],
+          "phoneNumber": data[0][2],
+          "dob": data[0][3],
+        }
+      });
       if (response.statusCode == 200) {
-        // result = response.data;
         notifyListeners();
-        return response.data['response']['success'];
+        return true;
       } else {
         throw Exception('Failed to load data from API');
       }
     } catch (error) {
-      debugPrint('Error $error');
       return false;
-      // throw Exception('Failed to load data from API: $error');
     }
   }
 }
 
 class MenuDataProvider with ChangeNotifier {
-  List allMenu = [];
-  List get getMenu => allMenu;
+  List allMenuKeys = [];
+  List allMenuValues = [];
+  List get getKeys => allMenuKeys;
+  List get getVal => allMenuValues;
 
   Future<List> getMenuAll() async {
+    allMenuKeys.clear();
+    allMenuValues.clear();
     try {
-      final response = await dio.get(menuFindAllURL,
-          options: Options(
-              headers: {'Authorization': 'Bearer ${localUserData[2]}'}));
+      final response = await dio.get(menuDataURL);
       if (response.statusCode == 200) {
-        allMenu = response.data['results'];
-        return response.data['results'];
+        allMenuKeys.addAll(response.data.keys);
+        allMenuValues.addAll(response.data.values);
+        return response.data;
       } else {
         throw Exception('Failed to load data from API');
       }
     } catch (error) {
       debugPrint('Failed to load data from API: $error');
       return [];
-      // throw Exception('Failed to load data from API: $error');
     }
   }
 
-  Future<Map> getMenuById(id) async {
-    try {
-      final response = await dio.get('$menuFindIdURL/$id',
-          options: Options(
-              headers: {'Authorization': 'Bearer ${localUserData[2]}'}));
-      if (response.statusCode == 200) {
-        return response.data['results'];
-      } else {
-        throw Exception('Failed to load data from API');
+  Map getMenuDetails(req) {
+    Map data = {};
+    for (var i in allMenuValues) {
+      if (i['name'] == req) {
+        data = (i);
       }
-    } catch (error) {
-      return {};
-      // throw Exception('Failed to load data from API: $error');
     }
+    return data;
   }
 
-  Future getMenuByName(name) async {
-    try {
-      final response = await dio.get('$menuFindNameURL/$name',
-          options: Options(
-              headers: {'Authorization': 'Bearer ${localUserData[2]}'}));
-      if (response.statusCode == 200) {
-        return response.data['results'];
+  List getMenuByCat(category) {
+    List data = [];
+    for (var i in allMenuValues) {
+      if (category == 'All Menu') {
+        data.add(i);
       } else {
-        throw Exception('Failed to load data from API');
+        if (i['category'] == category) {
+          data.add(i);
+        }
       }
-    } catch (error) {
-      return [];
-      // throw Exception('Failed to load data from API: $error');
     }
+    return data;
   }
 
-  Future<List> getMenuByCat(category) async {
-    try {
-      final response = await dio.get('$menuFindCategoryURL/$category',
-          options: Options(
-              headers: {'Authorization': 'Bearer ${localUserData[2]}'}));
-      if (response.statusCode == 200) {
-        return response.data['results'];
-      } else {
-        throw Exception('Failed to load data from API');
+  List searchFood(searchedFood) {
+    List data = [];
+    for (var food in allMenuValues) {
+      if (food['name'].toLowerCase().contains(searchedFood.toLowerCase())) {
+        data.add(food);
       }
-    } catch (error) {
-      return [];
-      // throw Exception('Failed to load data from API: $error');
     }
+    return data;
   }
 }
 
@@ -203,152 +180,119 @@ class ChatbotProvider with ChangeNotifier {
   }
 }
 
-class OrderDataProvider with ChangeNotifier {
+class OrderProvider with ChangeNotifier {
   List<dynamic> ongoingData = [];
   List<dynamic> historyData = [];
+  List<dynamic> orderNotesData = [];
+  List totalPrice = [];
+  List totalQuantity = [];
   List<dynamic> get ongoing => ongoingData;
   List<dynamic> get history => historyData;
+  List<dynamic> get notes => orderNotesData;
+  List<dynamic> get price => totalPrice;
+  List<dynamic> get quantity => totalQuantity;
 
-  Future<List> placeOrder(data) async {
-    try {
-      final response = await dio.post(placeOrderURL,
-          data: {"order_items": data},
-          options: Options(
-              headers: {'Authorization': 'Bearer ${localUserData[2]}'}));
-      if (response.statusCode == 201) {
-        notifyListeners();
-        return [
-          response.data['response']['success'],
-          response.data['results']['id']
-        ];
-      } else {
-        throw Exception('Failed to load data from API');
-      }
-    } catch (error) {
-      return [false];
-      // throw Exception('Failed to load data from API: $error');
-    }
+  void placeOrder(List data, List msg, int price, int qty) {
+    ongoingData.add(List.from(data));
+    orderNotesData.add(List.from(msg));
+    totalPrice.add(price);
+    totalQuantity.add(qty);
+    notifyListeners();
   }
 
-  Future fetchData() async {
-    ongoingData.clear();
-    historyData.clear();
-    try {
-      final response = await dio.get(historyOrderURL,
-          options: Options(
-              headers: {'Authorization': 'Bearer ${localUserData[2]}'}));
+  void orderFinished(int index) {
+    if (index >= 0 && index < ongoingData.length) {
+      historyData.add(ongoingData[index]);
+      ongoingData.removeAt(index);
 
-      if (response.statusCode == 200) {
-        List<dynamic> acceptedOrdersData = response.data['results'];
-        for (int i = 0; i < acceptedOrdersData.length; i++) {
-          if (acceptedOrdersData[i]['status'] == 'Accepted') {
-            ongoingData.add(acceptedOrdersData[i]);
-          }
-        }
-
-        List<dynamic> arrivedOrdersData = response.data['results'];
-        for (int i = 0; i < arrivedOrdersData.length; i++) {
-          if (arrivedOrdersData[i]['status'] == 'Arrived') {
-            ongoingData.add(arrivedOrdersData[i]);
-          }
-        }
-
-        notifyListeners();
-      } else {
-        throw Exception('Failed to load data');
-      }
-    } catch (error) {
-      debugPrint('Failed to load data from API: $error');
-      return [];
-      // throw Exception('Failed to load data: $error');
-    }
-  }
-}
-
-class PaymentDataProvider with ChangeNotifier {
-  Future<String> openPaymentPage(id) async {
-    try {
-      final response = await dio.post(selectPaymentURL,
-          data: {"order_ID": id},
-          options: Options(
-              headers: {'Authorization': 'Bearer ${localUserData[2]}'}));
-      if (response.statusCode == 201) {
-        notifyListeners();
-        return response.data['results']['redirect_url'];
-      } else {
-        throw Exception('Failed to load data from API');
-      }
-    } catch (error) {
-      // return false;
-      throw Exception('Failed to load data from API: $error');
+      notifyListeners();
     }
   }
 }
 
 class FavoritesMenuProvider with ChangeNotifier {
   List userFavMenu = [];
-  List get data => userFavMenu;
+  List get favMenu => userFavMenu;
 
-  void addToFav(data) {
-    if (userFavMenu.contains(data)) {
-      userFavMenu.remove(data);
+  void addToFav(menu) {
+    if (userFavMenu.contains(menu)) {
+      userFavMenu.remove(menu);
     } else {
-      userFavMenu.add(data);
+      userFavMenu.add(menu);
     }
     notifyListeners();
   }
 }
 
 class CartHandler with ChangeNotifier {
-  List<Map<String, dynamic>> userCart = [];
-  List<String?> userNotes = [];
+  List userCart = [];
+  List userNotes = [];
   int totalPrice = 0;
+  int totalQuantity = 0;
 
-  List<Map<String, dynamic>> get cart => userCart;
-  List<String?> get notes => userNotes;
+  List get cart => userCart;
+  List get notes => userNotes;
   int get price => totalPrice;
+  int get quantity => totalQuantity;
 
-  void addToCart(int id, int qty, num price) {
-    int formatPrice = price.toInt();
+  void addToCart(String name, int qty, String price) {
+    String cleanPrice = price.replaceAll('.', '');
+    int numericPrice = int.tryParse(cleanPrice) ?? 0;
     bool isItemExist = false;
 
     for (int i = 0; i < userCart.length; i++) {
-      if (userCart[i]["menu_id"] == id) {
+      if (userCart[i]["name"] == name) {
         userCart[i]["quantity"] += qty;
         isItemExist = true;
-        totalPrice += formatPrice * qty;
+        totalPrice += numericPrice;
+        totalQuantity += qty;
+        userCart[i]["price"] = numericPrice * userCart[i]["quantity"];
         break;
       }
     }
 
     if (!isItemExist) {
-      userCart.add({"menu_id": id, "quantity": qty});
+      userCart.add({
+        "name": name,
+        "quantity": qty,
+        "price": numericPrice,
+        'originalPrice': numericPrice
+      });
       userNotes.add(null);
-      totalPrice += formatPrice * qty;
+      totalPrice += numericPrice;
+      totalQuantity += qty;
     }
-
     notifyListeners();
   }
 
-  void incrementItem(int id, int index, num price) {
-    int formatPrice = price.toInt();
+  void incrementItem(String name, int price) {
     for (int i = 0; i < userCart.length; i++) {
-      if (userCart[i]["menu_id"] == id) {
+      if (userCart[i]["name"] == name) {
         userCart[i]["quantity"] += 1;
-        totalPrice += formatPrice;
+        userCart[i]["price"] += price;
+        totalPrice += price;
+        totalQuantity += 1;
         notifyListeners();
         break;
       }
     }
   }
 
-  void decrementItem(int id, int index, num price) {
-    int formatPrice = price.toInt();
+  void decrementItem(index, String name, int price) {
     for (int i = 0; i < userCart.length; i++) {
-      if (userCart[i]["menu_id"] == id) {
+      if (userCart[i]["name"] == name) {
         if (userCart[i]["quantity"] > 1) {
           userCart[i]["quantity"] -= 1;
-          totalPrice -= formatPrice;
+          userCart[i]["price"] -= price;
+          totalPrice -= price;
+          totalQuantity -= 1;
+          notifyListeners();
+        } else {
+          userNotes.removeAt(index);
+          totalPrice -= price;
+          totalQuantity -= 1;
+
+          userCart.removeAt(i);
           notifyListeners();
         }
         break;
@@ -361,12 +305,11 @@ class CartHandler with ChangeNotifier {
     notifyListeners();
   }
 
-  String getFormattedPrice() {
-    return formatCurrency(totalPrice);
-  }
-
   void clearCart() {
     userCart.clear();
+    userNotes.clear();
+    totalPrice = 0;
+    totalQuantity = 0;
     notifyListeners();
   }
 }
@@ -382,7 +325,22 @@ class BannerProvider with ChangeNotifier {
 }
 
 class AddressProvider with ChangeNotifier {
-  List<dynamic> userAddress = [];
+  List<dynamic> userAddress = [
+    [
+      'Jl. dulu aja no.13, Pondok Cabe, Jakarta Timur, Jawa Barat, Indonesia',
+      'Hydre Dry',
+      '081212348876',
+      'Rumah',
+      'Pagar hitam, depan taman, cat tembok abu.'
+    ],
+    [
+      'Jl. di tengah malam, Pondok Gede, bekasi, Jawa Barat, Indonesia',
+      'Tundra Doi',
+      '081388651234',
+      'Rumah II',
+      'Pagar hijau, depan sungai, ada pohon.'
+    ],
+  ];
   int defaultAddress = 0;
   int get idx => defaultAddress;
   List<dynamic> get data => userAddress;
@@ -411,6 +369,8 @@ class AddressProvider with ChangeNotifier {
 class OrderStatusDemoProvider with ChangeNotifier {
   List copyData = orderStatusEvents;
   List get data => copyData;
+  bool orderFinished = false;
+  bool get status => orderFinished;
 
   void resetOrderStatus() {
     for (int i = 0; i < orderStatusEvents.length; i++) {
@@ -419,10 +379,13 @@ class OrderStatusDemoProvider with ChangeNotifier {
   }
 
   Future<void> orderStatusDemo() async {
+    orderFinished = false;
     for (int i = 0; i < orderStatusEvents.length; i++) {
       await Future.delayed(const Duration(seconds: 2));
       copyData[i][2] = true;
       notifyListeners();
     }
+    orderFinished = true;
+    notifyListeners();
   }
 }
